@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q as Query
+from django.db.models import Q as Query,F as Reference
 
 from store.models import Product
 
@@ -68,8 +68,14 @@ def complex_filtering():
     # products = Product.objects.filter(~(Query(unit_price=100)& Query(inventory__lt=200)))
     return products
 
-
+def reference_feild_filtering():
+    products =  Product.objects.filter(unit_price=Reference('inventory'))
+    products =  Product.objects.filter(inventory=Reference('collection__id')) # Related table
+    return products
+    
 def say_hello(request):
     products = basic_filtering_and_retrieving()
     products = complex_filtering()
+    products = reference_feild_filtering()
+    
     return render(request, "hello.html",{"name":"Demis","products":list(products)})
