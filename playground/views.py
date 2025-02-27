@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q as Query
 
 from store.models import Product
 
@@ -9,7 +10,7 @@ from store.models import Product
 # request => response
 # action
 
-def say_hello(request):
+def basic_filtering_and_retrieving():
     # The all() method returns all entries in the database also colled the manager object
     queryset = Product.objects.all() # get all the products from the database
     
@@ -49,5 +50,26 @@ def say_hello(request):
     products = Product.objects.filter(last_update__date__gt='2024-02-01')
     products = Product.objects.filter(last_update__date__lt='2024-11-11')
     
-    products = Product.objects.filter(desctiption__isnull=True)
+    # products = Product.objects.filter(desctiption__isnull=True)
+    
+    return products
+
+
+def complex_filtering():
+    # AND
+    products = Product.objects.filter(unit_price__gt=100, inventory__lt=200) # one option
+    products = Product.objects.filter(unit_price__gt=100).filter(inventory__lt=200)# the other option
+    # products = Product.objects.filter(Query(unit_price__gt=100) & Query(inventory__lt=200))
+    # OR
+    products = Product.objects.filter(Query(unit_price__gt=100)| Query(inventory__lt=200))
+    
+    # NOT
+    products = Product.objects.filter(~(Query(unit_price=100)|Query(inventory__lt=200)))
+    # products = Product.objects.filter(~(Query(unit_price=100)& Query(inventory__lt=200)))
+    return products
+
+
+def say_hello(request):
+    products = basic_filtering_and_retrieving()
+    products = complex_filtering()
     return render(request, "hello.html",{"name":"Demis","products":list(products)})
