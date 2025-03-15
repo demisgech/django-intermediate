@@ -72,10 +72,39 @@ def reference_feild_filtering():
     products =  Product.objects.filter(unit_price=Reference('inventory'))
     products =  Product.objects.filter(inventory=Reference('collection__id')) # Related table
     return products
+
+def sorting():
+    products = Product.objects.order_by("title") # Ascending order
+    products = Product.objects.order_by("-title") # Descending order
     
+    products = Product.objects.order_by("unit_price",'-title') # ASC order with unit_price and DESC order with title
+    products = Product.objects.order_by("unit_price", "-title").reverse() # DESC order with unit_price and ASC order with title
+    products = Product.objects.filter(collection_id__lt=10).order_by("title")
+    
+    product = Product.objects.order_by("unit_price")[0] # single product
+    product = Product.objects.earliest("unit_price") # single product
+    product = Product.objects.latest("unit_price") # single product
+    return products
+    
+def limiting_products():
+    # Getting products with index
+    # 0, 1, 2,3, 4
+    products = Product.objects.all()[:5]
+    
+    # 5, 6, 7, 8, 9
+    products = Product.objects.all()[5:10]
+    
+    # 100,101,...
+    products = Product.objects.all()[100:]
+    return products
+
 def say_hello(request):
     products = basic_filtering_and_retrieving()
     products = complex_filtering()
     products = reference_feild_filtering()
     
+    products = sorting()
+    
+    products = limiting_products()
     return render(request, "hello.html",{"name":"Demis","products":list(products)})
+
