@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q as Query,F as Reference
 
-from store.models import Product
+from store.models import Order, Product, OrderItem, Customer
 
 #  A view: request handle in python not in other languages
 # takes(input) => return(output)
@@ -98,13 +98,62 @@ def limiting_products():
     products = Product.objects.all()[100:]
     return products
 
+def selecting_fields_to_query():
+    products = Product.objects.values("id","title")
+    
+    # Returns list of dicrionaries
+    products = Product.objects.values("id", "title", "collection__title") # Inner join 
+    
+    products = Product.objects.values_list("id","title","collection__title")
+    
+    # products = Product.objects.values('id','title','orderitem__id').distinct().order_by("title")
+    # products_id = OrderItem.objects.values("product__id") # Getting products id from the OrderItem table
+    products = Product.objects.filter(id__in=OrderItem.objects.values('product__id').distinct()).values("id","title","orderitem__id").order_by('title')
+    return products
+
+def selecting_with_only_and_defer():
+    # Don't do the following if you don't know what you are doing
+    # don't use the following specially if you are using loops to render multiple column
+    products = Product.objects.only("id","title") # return only id, and title
+    products = Product.objects.defer("description") # return all columns except description
+    return products
+
+def selecting_related_objects():
+    # Don't do the following to select related objects
+    # products = Product.objects.all()
+    
+    # Instead do the following
+    # use selected_related for on instance(1)
+    products = Product.objects.select_related().all()
+    # products = Product.objects.select_related("collection__someOtherRelatedField").all()
+    
+    # use prefetch_related for many objects(n)
+    products = Product.objects.prefetch_related("promotions").all()
+    
+    # the following 2 line of codes are exactly the same
+    products = Product.objects.prefetch_related("promotions").select_related("collection").all()
+    products = Product.objects.select_related("collection").prefetch_related("promotions").all()
+    
+    customer_id = Order.objects.values("customer_id").distinct()
+    order_id = OrderItem.objects.values("order_id").distinct()
+    
+    orders = Order.objects.select_related("customer").prefetch_related("orderitem_set__product").order_by("-placed_at")[:5]
+    return orders
+
 def say_hello(request):
-    products = basic_filtering_and_retrieving()
-    products = complex_filtering()
-    products = reference_feild_filtering()
+    # products = basic_filtering_and_retrieving()
+    # products = complex_filtering()
+    # products = reference_feild_filtering()
     
-    products = sorting()
+    # products = sorting()
     
-    products = limiting_products()
+    # products = limiting_products()
+    
+    # products = selecting_fields_to_query()
+    
+    # products = selecting_with_only_and_defer()
+    
+    products = selecting_related_objects()
+    
     return render(request, "hello.html",{"name":"Demis","products":list(products)})
 
