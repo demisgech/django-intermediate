@@ -1,7 +1,9 @@
+from unittest import result
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q as Query,F as Reference
+from django.db.models import Q as Query,F as Reference, Value
+from django.db.models.aggregates import Count,Avg, Max, Min, Sum
 
 from store.models import Order, Product, OrderItem, Customer
 
@@ -101,7 +103,7 @@ def limiting_products():
 def selecting_fields_to_query():
     products = Product.objects.values("id","title")
     
-    # Returns list of dicrionaries
+    # Returns list of dictionaries
     products = Product.objects.values("id", "title", "collection__title") # Inner join 
     
     products = Product.objects.values_list("id","title","collection__title")
@@ -140,6 +142,62 @@ def selecting_related_objects():
     orders = Order.objects.select_related("customer").prefetch_related("orderitem_set__product").order_by("-placed_at")[:5]
     return orders
 
+
+# Aggregating objects
+
+def aggregate_product(**filter_option):
+    product_query = Product.objects.all()
+    if filter_option:
+        product_query= product_query.filter(**filter_option)
+        
+    return product_query.aggregate(
+        count=Count('id'),
+        min_price=Min('unit_price'),
+        max_price=Max("unit_price"),
+        total_price=Sum("unit_price")
+        )
+    
+def aggregate_order_items():
+    return OrderItem.objects.aggregate(
+        count=Count("id"),
+        min_price=Min('unit_price'),
+        max_price=Max('unit_price'),
+        total_price=Sum("unit_price"),
+        average_price=Avg("unit_price")
+        )
+
+def calculate_total_revenue():
+    return OrderItem.objects.aggregate(
+        total_revenue=Sum(Reference("quantity") * Reference("unit_price")),
+        average_revenue=Avg(Reference('quantity') * Reference('unit_price'))
+        )
+
+def aggregate_orders():
+    orders = OrderItem.objects.values('order').annotate(
+        order_revenue=Sum(Reference('quantity') * Reference('unit_price'))
+    )
+    
+    return orders.aaggregate(
+        total_revenue=Sum("order_revenue"),
+        average_revenue=Avg("order_revenue")
+    )
+    
+def aggregate_objects():
+    result = aggregate_product()
+    result = aggregate_product(collection_id__gt=100,unit_price__lt=200)
+    result = aggregate_order_items()
+    result = calculate_total_revenue()
+    result = aggregate_orders()
+    return result
+
+# Annotating objects for adding new table column
+
+def annotate_objects():
+    # customer_query = Customer.objects.annotate(is_new=True) # Error!
+    customer_query = Customer.objects.annotate(is_new=Value(True)) 
+    customer_query = Customer.objects.annotate(new_id=Reference('id') + 1) 
+    return customer_query
+
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -153,7 +211,10 @@ def say_hello(request):
     
     # products = selecting_with_only_and_defer()
     
-    products = selecting_related_objects()
+    # products = selecting_related_objects()
     
-    return render(request, "hello.html",{"name":"Demis","products":list(products)})
+    # result = aggregate_objects()
+    
+    result = annotate_objects()
+    return render(request, "hello.html",{"name":"Demis","result": result})
 
