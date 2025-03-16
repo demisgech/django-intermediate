@@ -1,8 +1,9 @@
-from unittest import result
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q as Query,F as Reference, Value
+from django.db.models import Q as Query,F as Reference, Value, Func,Count
+from django.db.models.functions import Concat
 from django.db.models.aggregates import Count,Avg, Max, Min, Sum
 
 from store.models import Order, Product, OrderItem, Customer
@@ -198,6 +199,34 @@ def annotate_objects():
     customer_query = Customer.objects.annotate(new_id=Reference('id') + 1) 
     return customer_query
 
+def sql_contact_function():
+    create_full_name = Customer.objects.annotate(
+        full_name=Func(Reference("first_name"),
+                       Value(" "), 
+                       Reference("last_name"), 
+                       function='CONCAT'
+                       )
+    )
+    # The following is more descriptive than the above, because it produces the same result
+    
+    create_full_name = Customer.objects.annotate(
+        full_name=Concat("first_name",Value(" "), 'last_name')
+        )
+    return create_full_name
+
+
+def grouping_data():
+    group_customer_by_their_order = Customer.objects.annotate(
+        orders_count=Count("order")
+    ) # use the sql GROUP BY clause
+    # We can also group and order them with specific fields
+    
+    group_customer_by_their_order = Customer.objects.annotate(
+        orders_count=Count("order")
+    ).order_by("first_name") # use the sql GROUP BY clause followed by the ORDER BY clause
+    
+    return group_customer_by_their_order
+
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -215,6 +244,11 @@ def say_hello(request):
     
     # result = aggregate_objects()
     
-    result = annotate_objects()
+    # result = annotate_objects()
+    
+    # result = sql_contact_function()
+    
+    result = grouping_data()
+    
     return render(request, "hello.html",{"name":"Demis","result": result})
 

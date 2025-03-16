@@ -70,7 +70,7 @@ class Order(models.Model):
                                         default=PAYMENT_STATUS_PENDING)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     
-    
+    # order_set
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.PROTECT)
     product = models.ForeignKey(Product,on_delete=models.PROTECT)
