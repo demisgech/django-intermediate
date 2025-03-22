@@ -1,5 +1,4 @@
-
-from turtle import title
+from django.db import transaction
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -295,6 +294,36 @@ def delete_objects():
     
     Collection.objects.filter(id__gt=5).delete()
     
+# Make the entire function transaction atomic
+@transaction.atomic()
+def transactions():
+    order = Order()
+    order.customer_id = 1
+    order.save() # Save parent objects
+    
+    item = OrderItem()
+    item.order = order
+    item.product_id = 1
+    item.quantity = 1
+    item.unit_price = 10
+    item.save() # save child object
+    
+def partial_transaction():
+    # some code that are not part of transactions goes here ...
+    
+    # context manager 
+    with transaction.atomic():
+        order = Order()
+        order.customer_id = 1
+        order.save() # Save parent objects
+        
+        item = OrderItem()
+        item.order = order
+        item.product_id = 1
+        item.quantity = 1
+        item.unit_price = 10
+        item.save() # save child object
+        
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -321,7 +350,9 @@ def say_hello(request):
     # result = complex_expression()
     result = quering_generic_relations()
     # create_objects()
-    update_objects()
+    # update_objects()
+    
+    transactions()
     
     return render(request, "hello.html",{"name":"Demis","result": result})
 
