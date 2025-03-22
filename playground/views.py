@@ -245,15 +245,8 @@ def complex_expression():
     return result
     
 def quering_generic_relations():
-    content_type = ContentType.objects.get_for_model(Product)
-    queryResult = TaggedItem.objects\
-        .select_related('tag')\
-        .filter(
-            content_type=content_type,
-            object_id=1
-        )
+    return TaggedItem.objects.get_tags_for(Product, 1)
     
-    return queryResult 
 
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
