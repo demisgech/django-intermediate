@@ -265,6 +265,27 @@ def create_objects():
     # collection = Collection.objects.create(title="Video Games", feature_product_id=1)
     # id = collection.id
     
+def update_objects():
+    collection = Collection(pk=1)
+    collection.title = "Games"
+    collection.featured_product = None
+    collection.save()
+    #  The following is the same as the above because even if you haven't
+    # explicitely update the title, django will does it internally. So be aware when updating fields
+    collection = Collection(pk=1)
+    collection.featured_product = None
+    collection.save()
+    
+    #  The following is better than the above
+    collection = Collection.objects.get(pk=1)
+    collection.featured_product = None
+    collection.save()
+    
+    # The following is more better than all the above
+    # Collection.objects.update(featured_product=None) # General form
+    Collection.objects.filter(pk=1).update(featured_product=None)
+    
+     
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -290,7 +311,8 @@ def say_hello(request):
     
     # result = complex_expression()
     result = quering_generic_relations()
-    create_objects()
+    # create_objects()
+    update_objects()
     
     return render(request, "hello.html",{"name":"Demis","result": result})
 
