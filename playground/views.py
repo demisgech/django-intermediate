@@ -1,8 +1,9 @@
 
+from decimal import Decimal
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q as Query,F as Reference, Value, Func,Count
+from django.db.models import Q as Query,F as Reference, Value, Func,Count, ExpressionWrapper, DecimalField
 from django.db.models.functions import Concat
 from django.db.models.aggregates import Count,Avg, Max, Min, Sum
 
@@ -199,7 +200,7 @@ def annotate_objects():
     customer_query = Customer.objects.annotate(new_id=Reference('id') + 1) 
     return customer_query
 
-def sql_contact_function():
+def sql_concat_function():
     create_full_name = Customer.objects.annotate(
         full_name=Func(Reference("first_name"),
                        Value(" "), 
@@ -227,6 +228,19 @@ def grouping_data():
     
     return group_customer_by_their_order
 
+#  Complext expressions
+
+def complex_expression():
+    discounted_price = ExpressionWrapper(
+        Reference('unit_price') * 0.8, 
+        output_field=DecimalField()
+        )
+    result = Product.objects.annotate(
+        discounted_price=discounted_price
+    )
+    
+    return result
+    
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -248,7 +262,9 @@ def say_hello(request):
     
     # result = sql_contact_function()
     
-    result = grouping_data()
+    # result = grouping_data()
+    
+    result = complex_expression()
     
     return render(request, "hello.html",{"name":"Demis","result": result})
 
