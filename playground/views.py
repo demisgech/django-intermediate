@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db import connection
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -324,6 +325,20 @@ def partial_transaction():
         item.unit_price = 10
         item.save() # save child object
         
+def raw_sql():
+    # Work with the model directely
+    rawQuerySet = Product.objects.raw('SELECT * FROM store_product')
+    return rawQuerySet
+
+def raw_sql_jump_model_layer():
+    # This is a way of writing raw sql code that bypass the model layer
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT * FROM store_product')
+
+def raw_sql_store_procedure():
+    with connection.cursor() as cursor:
+        cursor.callproc("get_customer",[1,2,3,'a'])
+        
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -348,11 +363,13 @@ def say_hello(request):
     # result = grouping_data()
     
     # result = complex_expression()
-    result = quering_generic_relations()
+    # result = quering_generic_relations()
     # create_objects()
     # update_objects()
     
-    transactions()
+    # transactions()
     
-    return render(request, "hello.html",{"name":"Demis","result": result})
+    result = raw_sql()
+    
+    return render(request, "hello.html",{"name":"Demis","result": list(result)})
 
