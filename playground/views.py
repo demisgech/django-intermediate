@@ -286,6 +286,15 @@ def update_objects():
     Collection.objects.filter(pk=1).update(featured_product=None)
     
      
+def delete_objects():
+    # deleting single objects
+    collection = Collection(pk=1)
+    collection.delete()
+    
+    # deleting multiple objects
+    
+    Collection.objects.filter(id__gt=5).delete()
+    
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
