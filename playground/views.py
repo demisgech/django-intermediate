@@ -6,8 +6,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q as Query,F as Reference, Value, Func,Count, ExpressionWrapper, DecimalField
 from django.db.models.functions import Concat
 from django.db.models.aggregates import Count,Avg, Max, Min, Sum
+from django.contrib.contenttypes.models import ContentType
 
 from store.models import Order, Product, OrderItem, Customer
+from tags.models import TaggedItem
+
 
 #  A view: request handle in python not in other languages
 # takes(input) => return(output)
@@ -241,6 +244,17 @@ def complex_expression():
     
     return result
     
+def quering_generic_relations():
+    content_type = ContentType.objects.get_for_model(Product)
+    queryResult = TaggedItem.objects\
+        .select_related('tag')\
+        .filter(
+            content_type=content_type,
+            object_id=1
+        )
+    
+    return queryResult 
+
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -264,7 +278,8 @@ def say_hello(request):
     
     # result = grouping_data()
     
-    result = complex_expression()
+    # result = complex_expression()
+    result = quering_generic_relations()
     
     return render(request, "hello.html",{"name":"Demis","result": result})
 
