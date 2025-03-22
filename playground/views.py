@@ -1,5 +1,5 @@
 
-from decimal import Decimal
+from turtle import title
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,7 +8,7 @@ from django.db.models.functions import Concat
 from django.db.models.aggregates import Count,Avg, Max, Min, Sum
 from django.contrib.contenttypes.models import ContentType
 
-from store.models import Order, Product, OrderItem, Customer
+from store.models import Order, Product, OrderItem, Customer,Collection
 from tags.models import TaggedItem
 
 
@@ -247,7 +247,24 @@ def complex_expression():
 def quering_generic_relations():
     return TaggedItem.objects.get_tags_for(Product, 1)
     
-
+def create_objects():
+    #NB: in relational database the parent object must be exist before the child object
+    
+    collection = Collection()
+    collection.title = "Video Games"
+    collection.featured_product = Product(id=1)
+    # collection.featured_product = Product(pk=1) # the same as above
+    # or
+    # collection.featured_product_id = 1 
+    
+    collection.save()
+    id = collection.id
+    
+    # another way
+    
+    # collection = Collection.objects.create(title="Video Games", feature_product_id=1)
+    # id = collection.id
+    
 def say_hello(request):
     # products = basic_filtering_and_retrieving()
     # products = complex_filtering()
@@ -273,6 +290,7 @@ def say_hello(request):
     
     # result = complex_expression()
     result = quering_generic_relations()
+    create_objects()
     
     return render(request, "hello.html",{"name":"Demis","result": result})
 
