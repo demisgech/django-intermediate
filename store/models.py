@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, EmailValidator
 
 class Promotion(models.Model):
     description = models.CharField(max_length=255)
@@ -12,7 +13,11 @@ class Promotion(models.Model):
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
-    featured_product = models.ForeignKey('Product',on_delete=models.SET_NULL, null=True,related_name='+')
+    featured_product = models.ForeignKey(
+        'Product',on_delete=models.SET_NULL, 
+        null=True,
+        related_name='+'
+    )
 
     def __str__(self) -> str:
         return self.title
@@ -23,9 +28,15 @@ class Collection(models.Model):
 class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField()
-    description = models.TextField()
-    unit_price = models.DecimalField(max_digits=6,decimal_places=2)
-    inventory = models.IntegerField()
+    description = models.TextField(null=True,blank=True)
+    unit_price = models.DecimalField(
+         max_digits=6,
+        decimal_places=2,
+        validators=[MinValueValidator(1)]
+    )
+    inventory = models.IntegerField(
+        validators=[MinValueValidator(0)]
+    )
     last_update = models.DateTimeField(auto_now=True)
     collection = models.ForeignKey(Collection,on_delete=models.PROTECT)
     promotions = models.ManyToManyField(Promotion,related_name="products") # Many-to-Many relations
@@ -47,7 +58,10 @@ class Customer(models.Model):
     
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(
+        unique=True,
+        validators=[EmailValidator(message="Invalid email format!!")]
+    )
     phone_number = models.CharField(max_length=255)
     birth_date = models.DateTimeField(null=True)
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES,
