@@ -86,12 +86,18 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     
     # order_set
+    
+    def __str__(self):
+        return self.customer.first_name
+    
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.PROTECT)
     product = models.ForeignKey(Product,on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6,decimal_places=2)
     
+    def __str__(self):
+        return self.product.title
 
 class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)

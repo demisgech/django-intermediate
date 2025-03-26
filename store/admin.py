@@ -1,5 +1,8 @@
 from django.contrib import admin
-from django.db.models import Count
+from django.db.models import Count, F
+from django.utils.html import format_html, urlencode    
+from django.urls import reverse
+
 from . import models
 # Register your models here.
 
@@ -14,7 +17,16 @@ class CollectionAdmin(admin.ModelAdmin):
     
     @admin.display(ordering='products_count')
     def products_count(self, collection):
-        return collection.products_count
+        # reverse("admin:app_model_page")
+        url = (
+            reverse("admin:store_product_changelist")
+            + '?'
+            + urlencode({
+                "collection__id":str(collection.id)
+            })
+        ) # filtering products
+        return format_html('<a href="{}">{}</a>', url, collection.products_count)
+        # return collection.products_count
     
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
@@ -28,7 +40,7 @@ class ProductAdmin(admin.ModelAdmin):
         'unit_price',
         'inventory',
         "inventory_status",
-        "collection_title"
+        "collection_title",
         ]
     list_editable = ['unit_price']
     list_per_page = 10
@@ -49,13 +61,32 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = [
         'first_name',
         'last_name',
-        'membership'
+        'membership',
+        "order_made"
         ]
+    list_prefetch_related = ['order_set'] 
     list_editable = ['membership']
     ordering = ['first_name','last_name']
     list_per_page = 10
     
-
+    @admin.display(ordering='order_made')
+    def order_made(self,customer):
+        url = (
+            reverse("admin:store_order_changelist")
+            + '?'    
+            + urlencode({
+                "customer__id":str(customer.id)
+            })
+        )
+        return format_html('<a href="{}">{}</a>',url, customer.order_made)
+        # return customer.order_made
+        
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            order_made=Count("order")
+        )
+        
+        
 @admin.register(models.Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
@@ -72,6 +103,7 @@ class OrderAdmin(admin.ModelAdmin):
     
     def email(self, order):
         return order.customer.email
+    
     
 
 # admin.site.register(models.Product, ProductAdmin)
