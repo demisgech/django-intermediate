@@ -53,6 +53,12 @@ class Customer(models.Model):
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES,
                                   default=MEMBERSHIP_BRONZE)
     
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    class Meta:
+        ordering = ['first_name','last_name']
+    
     
 class Address(models.Model):
     street = models.CharField(max_length=255)
@@ -75,7 +81,7 @@ class Order(models.Model):
     ]
     
     placed_at = models.DateTimeField(auto_now=True)
-    paymenent_status = models.CharField(max_length=1,choices=PAYMENT_STATUS_CHOICES,
+    payment_status = models.CharField(max_length=1,choices=PAYMENT_STATUS_CHOICES,
                                         default=PAYMENT_STATUS_PENDING)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     
