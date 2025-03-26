@@ -45,6 +45,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['unit_price']
     list_per_page = 10
     list_select_related = ['collection']
+    search_fields = ['title__istartswith']
     
     
     def collection_title(self, product):
@@ -66,8 +67,9 @@ class CustomerAdmin(admin.ModelAdmin):
         ]
     list_prefetch_related = ['order_set'] 
     list_editable = ['membership']
-    ordering = ['first_name','last_name']
     list_per_page = 10
+    ordering = ['first_name','last_name']
+    search_fields = ['first_name__istartswith','last_name__istartswith']
     
     @admin.display(ordering='order_made')
     def order_made(self,customer):
