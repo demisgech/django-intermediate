@@ -1,9 +1,11 @@
 from django.contrib import admin, messages
+from django.contrib.contenttypes.admin import GenericStackedInline
 from django.db.models import Count, F,QuerySet
 from django.utils.html import format_html, urlencode    
 from django.urls import reverse
 
 from . import models
+from tags.models import TaggedItem
 # Register your models here.
 
 class InventoryFilter(admin.SimpleListFilter):
@@ -49,6 +51,12 @@ class CollectionAdmin(admin.ModelAdmin):
             products_count=Count('product')
         )
 
+
+class TagInline(GenericStackedInline):
+    autocomplete_fields = ['tag']
+    model = TaggedItem
+    extra = 1
+    
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
     # fields = ['title','slug']
@@ -60,6 +68,7 @@ class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ['collection']
     readonly_fields = ['slug']
     actions = ['clear_inventory']
+    inlines = [TagInline]
     list_display = [
         'title',
         'unit_price',
