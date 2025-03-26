@@ -1,12 +1,27 @@
 from django.contrib import admin
-from django.db.models import Count, F
+from django.db.models import Count, F,QuerySet
 from django.utils.html import format_html, urlencode    
 from django.urls import reverse
 
 from . import models
 # Register your models here.
 
-
+class InventoryFilter(admin.SimpleListFilter):
+    title = "Inventory"
+    parameter_name = "inventory"
+    less_than_10 = "<10"
+    
+    def lookups(self, request,model_admin):
+        return [
+            (self.less_than_10,"Low")
+        ]
+        
+    def queryset(self, request, queryset:QuerySet):
+        if self.value() == self.less_than_10:
+            return queryset.filter(inventory__lt=10)
+        # return queryset
+    
+    
 @admin.register(models.Collection)
 class CollectionAdmin(admin.ModelAdmin):
     list_display = [
@@ -43,6 +58,7 @@ class ProductAdmin(admin.ModelAdmin):
         "collection_title",
         ]
     list_editable = ['unit_price']
+    list_filter = ['collection','last_update',InventoryFilter]
     list_per_page = 10
     list_select_related = ['collection']
     search_fields = ['title__istartswith']
