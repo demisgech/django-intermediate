@@ -1,5 +1,6 @@
 from dataclasses import field
 from decimal import Decimal
+from turtle import title
 
 from rest_framework import serializers
 
@@ -67,7 +68,7 @@ class ProductSerializer(serializers.Serializer):
 class ProductModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id','title','price','price_with_tax','collection']
+        fields = ['id','title','description','slug','inventory','price','price_with_tax','collection']
         
         # You mustn't do the following because
         #  if tomorrow we add field that field 
@@ -84,7 +85,7 @@ class ProductModelSerializer(serializers.ModelSerializer):
     #     view_name='collection-detail'
     # )
     
-    collection = CollectionModelSerializer()
+    # collection = CollectionModelSerializer()
     
     price = serializers.DecimalField(max_digits=6,decimal_places=2,source='unit_price')
     price_with_tax = serializers.SerializerMethodField(method_name='calculate_tax')
@@ -100,3 +101,18 @@ class ProductModelSerializer(serializers.ModelSerializer):
     #     if data['password'] != data['comfirm_password']:
     #         return serializers.ValidationError("Passwords do not match!!")
     #     return data
+    
+    #  we don't need to do the following. The save method 
+    # from the rest_framework does all the necessary changes for us
+    # def create(self, validated_data):
+    #     collection_data = validated_data.pop("collection")
+    #     collection = Collection.objects.filter(title=collection_data['title']).first()
+    #     product = Product(collection=collection,**validated_data)
+    #     product.save()
+    #     return product
+        
+    # we don't need to do this as well 
+    # def update(self, instance, validated_data):
+    #     instance.unit_price = validated_data.get('unit_price')
+    #     instance.save()
+    #     return instance
