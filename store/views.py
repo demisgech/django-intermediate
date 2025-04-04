@@ -10,16 +10,21 @@ from .models import Product
 from .serializers import ProductSerializer, ProductModelSerializer
 
 
-@api_view()
+@api_view(['GET',"POST"])
 def product_list(request: Request) -> Response:
-    product_queryset = Product.objects.select_related("collection").all()
-    products_serializer = ProductSerializer(product_queryset, 
-                                            many=True,
-                                            context={'request':request}
-                                            )
-    products_serializer = ProductModelSerializer(product_queryset, many=True,context={"request":request} )
-    return Response(products_serializer.data)
-    
+    if request.method == "GET":
+        product_queryset = Product.objects.select_related("collection").all()
+        # products_serializer = ProductSerializer(product_queryset, 
+        #                                         many=True,
+        #                                         context={'request':request}
+        #                                         )
+        products_serializer = ProductModelSerializer(product_queryset, many=True,context={"request":request} )
+        return Response(products_serializer.data)
+    elif request.method == "POST":
+        product_serializer = ProductModelSerializer(data=request.data)    
+        # product_serializer.validated_data
+        return Response("Ok.")
+        
 
 @api_view()
 def product_detail(request:Request,id:int) -> Response:
