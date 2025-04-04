@@ -8,7 +8,6 @@ from rest_framework import status
 
 from .models import Product
 from .serializers import ProductSerializer
-from store import serializers
 
 
 @api_view()
