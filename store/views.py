@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework import status
 
 from .models import Product
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, ProductModelSerializer
 
 
 @api_view()
@@ -17,6 +17,7 @@ def product_list(request: Request) -> Response:
                                             many=True,
                                             context={'request':request}
                                             )
+    products_serializer = ProductModelSerializer(product_queryset, many=True,context={"request":request} )
     return Response(products_serializer.data)
     
 
