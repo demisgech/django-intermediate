@@ -21,10 +21,19 @@ def product_list(request: Request) -> Response:
         products_serializer = ProductModelSerializer(product_queryset, many=True,context={"request":request} )
         return Response(products_serializer.data)
     elif request.method == "POST":
-        product_serializer = ProductModelSerializer(data=request.data)    
-        # product_serializer.validated_data
-        return Response("Ok.")
+        product_serializer = ProductModelSerializer(data=request.data)  
         
+        # if product_serializer.is_valid():  
+        #     product_serializer.validated_data
+        #     return Response("Ok.")
+        # else:
+        #     return Response(product_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        
+        # We can rewrite the above if...else block in a simpler way as follows
+        
+        product_serializer.is_valid(raise_exception=True)
+        print(product_serializer.validated_data)
+        return Response("ok")
 
 @api_view()
 def product_detail(request:Request,id:int) -> Response:

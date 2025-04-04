@@ -93,3 +93,10 @@ class ProductModelSerializer(serializers.ModelSerializer):
     def calculate_tax(self, product:Product) -> Decimal:
         return product.unit_price * Decimal(1.1)
     
+    # this validation do not make sense here 
+    # but I wanna put here to make sure that
+    # we can also validate the data
+    # def validate(self, data):
+    #     if data['password'] != data['comfirm_password']:
+    #         return serializers.ValidationError("Passwords do not match!!")
+    #     return data
