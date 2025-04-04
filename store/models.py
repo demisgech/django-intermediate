@@ -16,7 +16,7 @@ class Collection(models.Model):
     featured_product = models.ForeignKey(
         'Product',on_delete=models.SET_NULL, 
         null=True,
-        related_name='+'
+        related_name='collections'
     )
 
     def __str__(self) -> str:
@@ -38,7 +38,7 @@ class Product(models.Model):
         validators=[MinValueValidator(0)]
     )
     last_update = models.DateTimeField(auto_now=True)
-    collection = models.ForeignKey(Collection,on_delete=models.PROTECT)
+    collection = models.ForeignKey(Collection,on_delete=models.PROTECT,related_name='products')
     promotions = models.ManyToManyField(Promotion,related_name="products") # Many-to-Many relations
     
     def __str__(self) -> str:

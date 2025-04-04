@@ -16,7 +16,14 @@ class CollectionSerializer(serializers.Serializer):
 class CollectionModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
-        fields = ['id','title']
+        fields = ['id','title','products_count']
+    
+    products_count = serializers.IntegerField(read_only=True)
+    
+    def create(self, validated_data):
+        collection = Collection(**validated_data)
+        collection.save()
+        return collection
 
 class ProductSerializer(serializers.Serializer):
     id = serializers.IntegerField()
