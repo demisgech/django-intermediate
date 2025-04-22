@@ -10,13 +10,59 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
-from rest_framework.generics import ListCreateAPIView,RetrieveUpdateDestroyAPIView, GenericAPIView
+from rest_framework.generics import  (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView, 
+    GenericAPIView
+    )
+from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 
 from .models import Collection, Product
-from .serializers import CollectionModelSerializer, CollectionSerializer, ProductSerializer, ProductModelSerializer
+from .serializers import (
+    CollectionModelSerializer,
+    CollectionSerializer,
+    ProductSerializer,
+    ProductModelSerializer
+    )
 
 
+# ViewSets
+
+class ProductViewSet(ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductModelSerializer
+    
+    def get_serializer_context(self):
+        return { "request":self.request }
+    
+    def delete(self, request:Request, id:int)->Response:
+        product = get_object_or_404(Product,pk = id)
+        if product.orderitems.count() > 0:
+           return Response({'Error':"Product cannot be deleted because it has an association with order"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)     
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
+class CollectionViewSet(ModelViewSet):
+    queryset = Collection.objects.annotate(products_count=Count("products"))
+    serializer_class = CollectionModelSerializer
+    
+    def put(self, request:Request, pk:int)->Response:
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=pk)
+        collection_serializer = CollectionModelSerializer(collection,data=request.data)
+        collection_serializer.is_valid(raise_exception=True)
+        collection_serializer.save()
+        return Response(data=collection_serializer.data)
+    
+    def get(self, request:Request,pk:int)->Response:
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=pk)
+        if collection.products.count() > 0:
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        collection.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
 # Generic views
 
 class ProductListCreateView(ListCreateAPIView):
