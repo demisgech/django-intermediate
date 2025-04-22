@@ -17,7 +17,7 @@ from rest_framework.generics import  (
     )
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter,OrderingFilter
 
 from store.filters import CollectionFilter, ProductFilter
 
@@ -36,12 +36,12 @@ from .serializers import (
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductModelSerializer
-    filter_backends = [DjangoFilterBackend,SearchFilter]
+    filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     # filterset_fields = ["collection_id"]
     filterset_class = ProductFilter
     
     search_fields = ["title","description"]
-    
+    ordering_fields = ['unit_price','last_update']
     
     # Completely remove the ff after setting up django_filters
     # def get_queryset(self):
