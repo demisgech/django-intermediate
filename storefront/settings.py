@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework',
     'playground',
     'debug_toolbar',
@@ -46,6 +47,15 @@ INSTALLED_APPS = [
     'likes',
     'polls'
     ]
+
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_FILTER_BACKENDS': (
+#         'django_filters.rest_framework.DjangoFilterBackend',
+#         # ...
+#     ),
+# }
+
 
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
