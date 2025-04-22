@@ -1,6 +1,4 @@
 
-import stat
-from urllib import request
 from django.shortcuts import render,get_object_or_404
 # from django.http import HttpResponse, HttpRequest
 from django.db.models import Count
@@ -18,12 +16,13 @@ from rest_framework.generics import  (
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 
-from .models import Collection, OrderItem, Product
+from .models import Collection, OrderItem, Product, Review
 from .serializers import (
     CollectionModelSerializer,
     CollectionSerializer,
     ProductSerializer,
-    ProductModelSerializer
+    ProductModelSerializer,
+    ReviewSerializer
     )
 
 
@@ -72,6 +71,18 @@ class CollectionViewSet(ModelViewSet):
     #         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
     #     collection.delete()
     #     return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+class ReviewViewSet(ModelViewSet):
+    serializer_class = ReviewSerializer
+    
+    def get_queryset(self):
+        return Review.objects.filter(product_id=self.kwargs['product_pk'])
+        
+    
+    def get_serializer_context(self):
+        return {"product_id":self.kwargs['product_pk']}
     
     
 # Generic views
