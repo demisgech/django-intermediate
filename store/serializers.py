@@ -40,7 +40,7 @@ class ProductSerializer(serializers.Serializer):
     # collection = serializers.PrimaryKeyRelatedField(
     #     queryset=Collection.objects.all()
     # )
-    #  option 2: but here you have select the related field 
+    #  option 2: but here you have to select the related field 
     # otherwise you'll end up sending unnecessary queries
     # collection = serializers.StringRelatedField()
     
