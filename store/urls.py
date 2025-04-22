@@ -1,5 +1,4 @@
 
-from codecs import lookup
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter,DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
@@ -8,7 +7,7 @@ from . import views
 # Nested routers
 
 router = SimpleRouter()
-router.register("products",views.ProductViewSet)
+router.register("products",views.ProductViewSet,basename="products")
 router.register("collections",views.CollectionViewSet)
 
 review_router = NestedSimpleRouter(router,"products",lookup='product')
