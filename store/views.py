@@ -18,7 +18,7 @@ from rest_framework.generics import  (
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 
-from .models import Collection, Product
+from .models import Collection, OrderItem, Product
 from .serializers import (
     CollectionModelSerializer,
     CollectionSerializer,
@@ -36,31 +36,42 @@ class ProductViewSet(ModelViewSet):
     def get_serializer_context(self):
         return { "request":self.request }
     
-    def delete(self, request:Request, id:int)->Response:
-        product = get_object_or_404(Product,pk = id)
-        if product.orderitems.count() > 0:
+    def destroy(self, request, *args, **kwargs):
+        if OrderItem.objects.filter(product_id=kwargs['pk']).count() > 0:
            return Response({'Error':"Product cannot be deleted because it has an association with order"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)     
-        product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return super().destroy(request, *args, **kwargs)
     
     
 class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(products_count=Count("products"))
     serializer_class = CollectionModelSerializer
     
-    def put(self, request:Request, pk:int)->Response:
-        collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=pk)
+    def update(self, request, *args, **kwargs):
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=kwargs['pk'])
         collection_serializer = CollectionModelSerializer(collection,data=request.data)
         collection_serializer.is_valid(raise_exception=True)
         collection_serializer.save()
-        return Response(data=collection_serializer.data)
+        return super().update(request, *args, **kwargs)
     
-    def get(self, request:Request,pk:int)->Response:
-        collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=pk)
+    # def put(self, request:Request, pk:int)->Response:
+    #     collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=pk)
+    #     collection_serializer = CollectionModelSerializer(collection,data=request.data)
+    #     collection_serializer.is_valid(raise_exception=True)
+    #     collection_serializer.save()
+    #     return Response(data=collection_serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=kwargs['pk'])
         if collection.products.count() > 0:
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        collection.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({"error":"Collection cannot be deleted because it has an association with products"},status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().destroy(request, *args, **kwargs)
+    
+    # def delete(self, request:Request,pk:int)->Response:
+    #     collection = get_object_or_404(Collection.objects.annotate(products_count=Count("products")),pk=pk)
+    #     if collection.products.count() > 0:
+    #         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    #     collection.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
     
     
 # Generic views
