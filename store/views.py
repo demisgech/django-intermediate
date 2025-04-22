@@ -1,4 +1,5 @@
 
+from re import search
 from django.shortcuts import render,get_object_or_404
 # from django.http import HttpResponse, HttpRequest
 from django.db.models import Count
@@ -16,6 +17,7 @@ from rest_framework.generics import  (
     )
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
+from rest_framework.filters import SearchFilter
 
 from store.filters import CollectionFilter, ProductFilter
 
@@ -34,9 +36,11 @@ from .serializers import (
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductModelSerializer
-    filter_backends = [DjangoFilterBackend,]
+    filter_backends = [DjangoFilterBackend,SearchFilter]
     # filterset_fields = ["collection_id"]
     filterset_class = ProductFilter
+    
+    search_fields = ["title","description"]
     
     
     # Completely remove the ff after setting up django_filters
