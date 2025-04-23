@@ -42,10 +42,10 @@ INSTALLED_APPS = [
     'playground',
     'debug_toolbar',
     'store',
-    'core',
     'tags',
     'likes',
-    'polls'
+    'polls',
+    'core',
     ]
 
 
@@ -152,3 +152,5 @@ REST_FRAMEWORK = {
         # ...
     ),
 }
+
+AUTH_USER_MODEL = "core.User"
