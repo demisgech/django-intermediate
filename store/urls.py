@@ -1,7 +1,7 @@
 
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter,DefaultRouter
-from rest_framework_nested.routers import NestedSimpleRouter
+from rest_framework_nested.routers import NestedSimpleRouter,NestedDefaultRouter
 from . import views
 
 # Nested routers
@@ -9,13 +9,17 @@ from . import views
 router = SimpleRouter()
 router.register("products",views.ProductViewSet,basename="products")
 router.register("collections",views.CollectionViewSet)
+router.register("carts", views.CartViewSet, basename="carts")
 
+cart_router = NestedSimpleRouter(router,"carts",lookup='cart')
 review_router = NestedSimpleRouter(router,"products",lookup='product')
 
+cart_router.register("items",views.CartItemViewSet,basename="cart-items")
 review_router.register("reviews",views.ReviewViewSet,basename="product-reviews")
 
 urlpatterns = [
     path("",include(router.urls)),
+    path("", include(cart_router.urls)),
     path("",include(review_router.urls))
 ]
 
