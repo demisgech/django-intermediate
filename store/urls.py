@@ -6,13 +6,15 @@ from . import views
 
 # Nested routers
 
-router = SimpleRouter()
+router = DefaultRouter()
 router.register("products",views.ProductViewSet,basename="products")
 router.register("collections",views.CollectionViewSet)
 router.register("carts", views.CartViewSet, basename="carts")
+router.register("customers", views.CustomerViewSet)
 
-cart_router = NestedSimpleRouter(router,"carts",lookup='cart')
-review_router = NestedSimpleRouter(router,"products",lookup='product')
+
+cart_router = NestedDefaultRouter(router,"carts",lookup='cart')
+review_router = NestedDefaultRouter(router,"products",lookup='product')
 
 cart_router.register("items",views.CartItemViewSet,basename="cart-items")
 review_router.register("reviews",views.ReviewViewSet,basename="product-reviews")
@@ -20,7 +22,7 @@ review_router.register("reviews",views.ReviewViewSet,basename="product-reviews")
 urlpatterns = [
     path("",include(router.urls)),
     path("", include(cart_router.urls)),
-    path("",include(review_router.urls))
+    path("",include(review_router.urls)),
 ]
 
 

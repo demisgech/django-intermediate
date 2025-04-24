@@ -29,6 +29,7 @@ class Collection(models.Model):
     class Meta:
         ordering = ['title']
 
+
 class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField()
@@ -50,6 +51,8 @@ class Product(models.Model):
     
     class Meta:
         ordering = ['title']
+        
+        
 class Customer(models.Model):
     MEMBERSHIP_BRONZE = 'B'
     MEMBERSHIP_SILVER = 'S'
@@ -113,6 +116,8 @@ class Order(models.Model):
         permissions = [
             ("cancel_order","can cancel order")
         ]
+        
+        
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.PROTECT)
     product = models.ForeignKey(Product,on_delete=models.PROTECT,related_name="orderitems")
@@ -121,6 +126,7 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return self.product.title
+
 
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True,default=uuid4)

@@ -137,6 +137,7 @@ class OrderItemInline(admin.TabularInline):
     max_num = 10
     extra = 0
         
+        
 @admin.register(models.Order)
 class OrderAdmin(admin.ModelAdmin):
     autocomplete_fields = ['customer']

@@ -5,16 +5,19 @@ from django.db.models import Count
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+import rest_framework
 from rest_framework.exceptions import NotFound
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,action
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.mixins import (
     CreateModelMixin, 
     ListModelMixin,
     RetrieveModelMixin,
-    DestroyModelMixin
+    DestroyModelMixin,
+    UpdateModelMixin
     )
 from rest_framework.generics import  (
     ListCreateAPIView,
@@ -28,13 +31,14 @@ from rest_framework.pagination import PageNumberPagination
 
 from store.filters import CollectionFilter, ProductFilter
 from store.pagination import CustomLimitOffsetPagination, DefaultPagination
-from .models import Cart, CartItem, Collection, OrderItem, Product, Review
+from .models import Cart, CartItem, Collection, Customer, OrderItem, Product, Review
 from .serializers import (
     AddCartItemSerializer,
     CartItemSerializer,
     CartSerializer,
     CollectionModelSerializer,
     CollectionSerializer,
+    CustomerSerializer,
     ProductSerializer,
     ProductModelSerializer,
     ReviewSerializer,
@@ -149,6 +153,34 @@ class CartItemViewSet(ModelViewSet):
     def get_serializer_context(self):
         return {"cart_id":self.kwargs['cart_pk']}
 
+
+class CustomerViewSet(CreateModelMixin,
+                      RetrieveModelMixin,
+                      UpdateModelMixin,
+                      GenericViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
+    @action(detail=False,methods=['GET','PUT'])
+    def me(self,request:Request)->Response:
+        (customer, created) = Customer.objects.get_or_create(user_id=request.user.id)
+        if request.method == "GET":
+            serializer = CustomerSerializer(customer)
+            return Response(serializer.data)
+        elif request.method == "PUT":
+            serializer = CustomerSerializer(customer,data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data=serializer.data)
+            
+            
+        
     
 # Generic views
 
