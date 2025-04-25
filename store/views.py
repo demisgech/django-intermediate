@@ -5,13 +5,17 @@ from django.db.models import Count
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-import rest_framework
 from rest_framework.exceptions import NotFound
 from rest_framework.decorators import api_view,action
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import (
+    IsAuthenticated,
+    AllowAny,IsAdminUser,
+    DjangoModelPermissions,
+    DjangoModelPermissionsOrAnonReadOnly
+    )
 from rest_framework.mixins import (
     CreateModelMixin, 
     ListModelMixin,
@@ -29,8 +33,10 @@ from rest_framework import status
 from rest_framework.filters import SearchFilter,OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 
+
 from store.filters import CollectionFilter, ProductFilter
 from store.pagination import CustomLimitOffsetPagination, DefaultPagination
+from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from .models import Cart, CartItem, Collection, Customer, OrderItem, Product, Review
 from .serializers import (
     AddCartItemSerializer,
@@ -51,6 +57,7 @@ from .serializers import (
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductModelSerializer
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     # filterset_fields = ["collection_id"]
     filterset_class = ProductFilter
@@ -80,6 +87,7 @@ class ProductViewSet(ModelViewSet):
 class CollectionViewSet(ModelViewSet):
     queryset = Collection.objects.annotate(products_count=Count("products"))
     serializer_class = CollectionModelSerializer
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = CollectionFilter
     
@@ -154,20 +162,26 @@ class CartItemViewSet(ModelViewSet):
         return {"cart_id":self.kwargs['cart_pk']}
 
 
-class CustomerViewSet(CreateModelMixin,
-                      RetrieveModelMixin,
-                      UpdateModelMixin,
-                      GenericViewSet):
+class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAdminUser]
+    # permission_classes = [DjangoModelPermissions]
+    # permission_classes = [FullDjangoModelPermissions]
+    permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
     
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [AllowAny()]
-        return [IsAuthenticated()]
+    # def get_permissions(self):
+    #     if self.request.method == "GET":
+    #         return [AllowAny()]
+    #     return [IsAuthenticated()]
     
-    @action(detail=False,methods=['GET','PUT'])
+    @action(detail=True,permission_classes=[ViewCustomerHistoryPermission])
+    def history(self, request,pk):
+        customer = get_object_or_404(Customer,pk=pk)
+        serializer = CustomerSerializer(customer,context={"request":request})
+        return Response(serializer.data)
+        
+    @action(detail=False,methods=['GET','PUT'],permission_classes=[IsAuthenticated])
     def me(self,request:Request)->Response:
         (customer, created) = Customer.objects.get_or_create(user_id=request.user.id)
         if request.method == "GET":
